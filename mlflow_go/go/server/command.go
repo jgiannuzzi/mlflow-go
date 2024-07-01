@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"runtime"
-	"syscall"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -24,12 +22,7 @@ func launchCommand(ctx context.Context, cfg *config.Config) error {
 	cmd.Cancel = func() error {
 		logrus.Debug("Sending termination signal to command")
 
-		switch runtime.GOOS {
-		case "windows":
-			return cmd.Process.Kill()
-		default:
-			return cmd.Process.Signal(syscall.SIGTERM)
-		}
+		return terminateProcessGroup(cmd)
 	}
 	setNewProcessGroup(cmd)
 
