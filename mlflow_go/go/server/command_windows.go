@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"syscall"
 	"time"
 	"unsafe"
 
@@ -16,10 +15,6 @@ import (
 
 	"github.com/mlflow/mlflow-go/mlflow_go/go/config"
 )
-
-func setNewProcessGroup(cmd *exec.Cmd) {
-	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP}
-}
 
 func launchCommand(ctx context.Context, cfg *config.Config) error {
 	job, err := windows.CreateJobObject(nil, nil)
@@ -45,7 +40,6 @@ func launchCommand(ctx context.Context, cfg *config.Config) error {
 
 		return windows.CloseHandle(job)
 	}
-	setNewProcessGroup(cmd)
 
 	logrus.Debugf("Launching command: %v", cmd)
 
@@ -53,7 +47,13 @@ func launchCommand(ctx context.Context, cfg *config.Config) error {
 		return fmt.Errorf("command could not launch: %w", err)
 	}
 
-	if err := windows.AssignProcessToJobObject(job, windows.Handle(cmd.Process.Pid)); err != nil {
+	hProc, err := windows.OpenProcess(2097151, true, uint32(cmd.Process.Pid))
+	if err != nil {
+		return fmt.Errorf("could not open process: %w", err)
+	}
+	defer windows.CloseHandle(hProc)
+
+	if err := windows.AssignProcessToJobObject(job, hProc); err != nil {
 		return fmt.Errorf("could not assign process to job object: %w", err)
 	}
 
