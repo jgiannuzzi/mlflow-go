@@ -3,6 +3,7 @@
 package server
 
 import (
+	"errors"
 	"os/exec"
 	"syscall"
 )
@@ -12,4 +13,8 @@ func setNewProcessGroup(cmd *exec.Cmd) {
 		Setpgid: true,
 		Pgid:    0,
 	}
+}
+
+func sendCtrlBreak(_ int) error {
+	return errors.ErrUnsupported
 }

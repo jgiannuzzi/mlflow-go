@@ -26,7 +26,7 @@ func launchCommand(ctx context.Context, cfg *config.Config) error {
 
 		switch runtime.GOOS {
 		case "windows":
-			return cmd.Process.Kill()
+			return sendCtrlBreak(cmd.Process.Pid)
 		default:
 			return cmd.Process.Signal(syscall.SIGTERM)
 		}
