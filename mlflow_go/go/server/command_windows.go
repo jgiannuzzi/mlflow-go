@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"syscall"
 	"time"
 	"unsafe"
 
@@ -40,6 +41,7 @@ func launchCommand(ctx context.Context, cfg *config.Config) error {
 
 		return windows.CloseHandle(job)
 	}
+	cmd.SysProcAttr = &syscall.SysProcAttr{CreationFlags: syscall.CREATE_NEW_PROCESS_GROUP}
 
 	logrus.Debugf("Launching command: %v", cmd)
 
