@@ -12,7 +12,11 @@ import (
 func Dev() error {
 	mg.Deps(Generate)
 
-	return sh.RunV(
+	return sh.RunWithV(
+		map[string]string{
+			"PYTHON_LOGGING_LEVEL":        "DEBUG",
+			"MLFLOW_SQLALCHEMYSTORE_ECHO": "True",
+		},
 		"mlflow-go",
 		"server",
 		"--backend-store-uri",
