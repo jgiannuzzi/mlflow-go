@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  go-test:
+  go:
     name: Test Go
     strategy:
       matrix:
@@ -18,7 +18,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22
+          go-version: "1.22"
           check-latest: true
           cache: false
       - name: Install mage
@@ -26,12 +26,12 @@ jobs:
       - name: Run unit tests
         run: mage test:unit
 
-  python-test:
+  python:
     name: Test Python
     strategy:
       matrix:
         runner: [macos-latest, ubuntu-latest, windows-latest]
-        python: [3.8, 3.9, 3.10, 3.11, 3.12]
+        python: ["3.8", "3.9", "3.10", "3.11", "3.12"]
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
@@ -42,7 +42,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: 1.22
+          go-version: "1.22"
           check-latest: true
           cache: false
       - name: Install mage
