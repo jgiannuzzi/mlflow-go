@@ -710,7 +710,7 @@ func (s TrackingSQLStore) UpdateRun(
 	ctx context.Context,
 	runID string,
 	runStatus string,
-	endTime int64,
+	endTime *int64,
 	runName string,
 ) *contract.Error {
 	runTag, err := s.GetRunTag(ctx, runID, utils.TagRunName)
@@ -727,13 +727,20 @@ func (s TrackingSQLStore) UpdateRun(
 		})
 	}
 
+	var endTimeValue sql.NullInt64
+	if endTime == nil {
+		endTimeValue = sql.NullInt64{}
+	} else {
+		endTimeValue = sql.NullInt64{Int64: *endTime, Valid: true}
+	}
+
 	if err := s.db.WithContext(ctx).Transaction(func(transaction *gorm.DB) error {
 		if err := transaction.Model(&models.Run{}).
 			Where("run_uuid = ?", runID).
 			Updates(&models.Run{
 				Name:    runName,
 				Status:  models.RunStatus(runStatus),
-				EndTime: endTime,
+				EndTime: endTimeValue,
 			}).Error; err != nil {
 			return err
 		}
