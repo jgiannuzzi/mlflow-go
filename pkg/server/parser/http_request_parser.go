@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -11,6 +10,7 @@ import (
 
 	"github.com/mlflow/mlflow-go/pkg/contract"
 	"github.com/mlflow/mlflow-go/pkg/protos"
+	"github.com/mlflow/mlflow-go/pkg/utils/json"
 	"github.com/mlflow/mlflow-go/pkg/validation"
 )
 
@@ -30,7 +30,7 @@ func NewHTTPRequestParser() (*HTTPRequestParser, error) {
 }
 
 func (p *HTTPRequestParser) ParseBody(ctx *fiber.Ctx, input interface{}) *contract.Error {
-	if err := ctx.BodyParser(input); err != nil {
+	if err := json.Unmarshal(ctx.Body(), input); err != nil {
 		var unmarshalTypeError *json.UnmarshalTypeError
 		if errors.As(err, &unmarshalTypeError) {
 			result := gjson.GetBytes(ctx.Body(), unmarshalTypeError.Field)

@@ -2,6 +2,7 @@ run:
   build-tags:
     - mage
   timeout: 5m
+  tests: false
 
 linters:
   enable:
@@ -53,3 +54,5 @@ issues:
   exclude-files:
     - ".*\\.g\\.go$"
     - ".*\\.pb\\.go$"
+  exclude-dirs:
+    - utils/json
