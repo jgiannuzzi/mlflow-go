@@ -442,6 +442,7 @@ func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy [
 		}
 
 		if kind == nil &&
+			orderByExpr.identifier != nil &&
 			*orderByExpr.identifier == attribute &&
 			orderByExpr.key == "end_time" {
 			logger.Debug("do something special")
