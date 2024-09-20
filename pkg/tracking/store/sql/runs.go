@@ -263,6 +263,7 @@ const (
 	identifierAndKeyLength = 2
 	startTime              = "start_time"
 	name                   = "name"
+	attribute              = "attribute"
 )
 
 func orderByKeyAlias(input string) string {
@@ -350,7 +351,7 @@ func translateIdentifierAlias(identifier string) string {
 	case "tags":
 		return "tag"
 	case "attr", "attributes", "run":
-		return "attribute"
+		return attribute
 	case "datasets":
 		return "dataset"
 	default:
@@ -399,7 +400,8 @@ func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy [
 			)
 		}
 
-		utils.GetLoggerFromContext(ctx).
+		logger := utils.GetLoggerFromContext(ctx)
+		logger.
 			Debugf(
 				"OrderByExpr: identifier: %v, key: %v, order: %v",
 				utils.DumpStringPointer(orderByExpr.identifier),
@@ -413,7 +415,7 @@ func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy [
 			startTimeOrder = true
 		} else if orderByExpr.identifier != nil {
 			switch {
-			case *orderByExpr.identifier == "attribute" && orderByExpr.key == "start_time":
+			case *orderByExpr.identifier == attribute && orderByExpr.key == "start_time":
 				startTimeOrder = true
 			case *orderByExpr.identifier == "metric":
 				kind = &models.LatestMetric{}
@@ -437,6 +439,14 @@ func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy [
 		desc := false
 		if orderByExpr.order != nil {
 			desc = *orderByExpr.order == "DESC"
+		}
+
+		if kind == nil &&
+			*orderByExpr.identifier == attribute &&
+			orderByExpr.key == "end_time" {
+			logger.Debug("do something special")
+			transaction.Select("*, (CASE WHEN (runs.end_time IS NULL) THEN 1 ELSE 0 END) AS end_time_present")
+			transaction.Order("end_time_present")
 		}
 
 		transaction.Order(clause.OrderByColumn{
