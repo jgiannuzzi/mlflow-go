@@ -1215,7 +1215,7 @@ func TestMarshalNaNAndInf(t *testing.T) {
 	if err != nil {
 		t.Errorf("Marshal() error: %v", err)
 	}
-	want := `{"N":"NaN","IP":"Inf","IN":"-Inf"}`
+	want := `{"N":"NaN","IP":"+Inf","IN":"-Inf"}`
 	if string(got) != want {
 		t.Errorf("Marshal() = %s, want %s", got, want)
 	}
