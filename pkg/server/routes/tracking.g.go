@@ -4,11 +4,11 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/mlflow/mlflow-go/pkg/contract/service"
-	"github.com/mlflow/mlflow-go/pkg/protos"
 	"github.com/mlflow/mlflow-go/pkg/server/request"
-	"github.com/mlflow/mlflow-go/pkg/server/response"
+	"github.com/mlflow/mlflow-go/pkg/contract/service"
 	"github.com/mlflow/mlflow-go/pkg/utils"
+	"github.com/mlflow/mlflow-go/pkg/protos"
+	"github.com/mlflow/mlflow-go/pkg/server/response"
 )
 
 func RegisterTrackingServiceRoutes(service service.TrackingService, parser *request.HTTPRequestParser, app *fiber.App) {
