@@ -21,7 +21,7 @@ import (
 	"github.com/mlflow/mlflow-go/pkg/config"
 	"github.com/mlflow/mlflow-go/pkg/contract"
 	"github.com/mlflow/mlflow-go/pkg/protos"
-	"github.com/mlflow/mlflow-go/pkg/server/parser"
+	"github.com/mlflow/mlflow-go/pkg/server/request"
 	"github.com/mlflow/mlflow-go/pkg/server/routes"
 	"github.com/mlflow/mlflow-go/pkg/utils"
 )
@@ -175,7 +175,7 @@ func newFiberConfig() fiber.Config {
 func newAPIApp(ctx context.Context, cfg *config.Config) (*fiber.App, error) {
 	app := fiber.New(newFiberConfig())
 
-	parser, err := parser.NewHTTPRequestParser()
+	parser, err := request.NewHTTPRequestParser()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new HTTP request parser: %w", err)
 	}

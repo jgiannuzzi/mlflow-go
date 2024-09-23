@@ -4,13 +4,14 @@ package routes
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/mlflow/mlflow-go/pkg/server/parser"
 	"github.com/mlflow/mlflow-go/pkg/contract/service"
-	"github.com/mlflow/mlflow-go/pkg/utils"
 	"github.com/mlflow/mlflow-go/pkg/protos"
+	"github.com/mlflow/mlflow-go/pkg/server/request"
+	"github.com/mlflow/mlflow-go/pkg/server/response"
+	"github.com/mlflow/mlflow-go/pkg/utils"
 )
 
-func RegisterModelRegistryServiceRoutes(service service.ModelRegistryService, parser *parser.HTTPRequestParser, app *fiber.App) {
+func RegisterModelRegistryServiceRoutes(service service.ModelRegistryService, parser *request.HTTPRequestParser, app *fiber.App) {
 	app.Post("/mlflow/registered-models/get-latest-versions", func(ctx *fiber.Ctx) error {
 		input := &protos.GetLatestVersions{}
 		if err := parser.ParseBody(ctx, input); err != nil {
@@ -20,7 +21,7 @@ func RegisterModelRegistryServiceRoutes(service service.ModelRegistryService, pa
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Get("/mlflow/registered-models/get-latest-versions", func(ctx *fiber.Ctx) error {
 		input := &protos.GetLatestVersions{}
@@ -31,6 +32,6 @@ func RegisterModelRegistryServiceRoutes(service service.ModelRegistryService, pa
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 }

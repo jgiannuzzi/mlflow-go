@@ -6,12 +6,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/mlflow/mlflow-go/pkg/contract/service"
 	"github.com/mlflow/mlflow-go/pkg/protos"
-	"github.com/mlflow/mlflow-go/pkg/server/parser"
+	"github.com/mlflow/mlflow-go/pkg/server/request"
+	"github.com/mlflow/mlflow-go/pkg/server/response"
 	"github.com/mlflow/mlflow-go/pkg/utils"
-	"github.com/mlflow/mlflow-go/pkg/utils/json"
 )
 
-func RegisterTrackingServiceRoutes(service service.TrackingService, parser *parser.HTTPRequestParser, app *fiber.App) {
+func RegisterTrackingServiceRoutes(service service.TrackingService, parser *request.HTTPRequestParser, app *fiber.App) {
 	app.Get("/mlflow/experiments/get-by-name", func(ctx *fiber.Ctx) error {
 		input := &protos.GetExperimentByName{}
 		if err := parser.ParseQuery(ctx, input); err != nil {
@@ -21,7 +21,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/experiments/create", func(ctx *fiber.Ctx) error {
 		input := &protos.CreateExperiment{}
@@ -32,7 +32,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Get("/mlflow/experiments/get", func(ctx *fiber.Ctx) error {
 		input := &protos.GetExperiment{}
@@ -43,7 +43,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/experiments/delete", func(ctx *fiber.Ctx) error {
 		input := &protos.DeleteExperiment{}
@@ -54,7 +54,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/experiments/restore", func(ctx *fiber.Ctx) error {
 		input := &protos.RestoreExperiment{}
@@ -65,7 +65,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/experiments/update", func(ctx *fiber.Ctx) error {
 		input := &protos.UpdateExperiment{}
@@ -76,7 +76,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/runs/create", func(ctx *fiber.Ctx) error {
 		input := &protos.CreateRun{}
@@ -87,7 +87,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/runs/update", func(ctx *fiber.Ctx) error {
 		input := &protos.UpdateRun{}
@@ -98,7 +98,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/runs/delete", func(ctx *fiber.Ctx) error {
 		input := &protos.DeleteRun{}
@@ -109,7 +109,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/runs/restore", func(ctx *fiber.Ctx) error {
 		input := &protos.RestoreRun{}
@@ -120,7 +120,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/runs/log-metric", func(ctx *fiber.Ctx) error {
 		input := &protos.LogMetric{}
@@ -131,8 +131,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Get("/mlflow/runs/get", func(ctx *fiber.Ctx) error {
 		input := &protos.GetRun{}
@@ -143,13 +142,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-
-		if data, err := json.Marshal(output); err != nil {
-			return err
-		} else {
-			ctx.Set("Content-Type", ctx.Get("Content-Type", "application/json; charset=utf-8"))
-			return ctx.Send(data)
-		}
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/runs/search", func(ctx *fiber.Ctx) error {
 		input := &protos.SearchRuns{}
@@ -160,7 +153,7 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 	app.Post("/mlflow/runs/log-batch", func(ctx *fiber.Ctx) error {
 		input := &protos.LogBatch{}
@@ -171,6 +164,6 @@ func RegisterTrackingServiceRoutes(service service.TrackingService, parser *pars
 		if err != nil {
 			return err
 		}
-		return ctx.JSON(output)
+		return response.SerializeResponse(ctx, output)
 	})
 }
