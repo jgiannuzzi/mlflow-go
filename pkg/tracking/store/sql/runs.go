@@ -421,7 +421,7 @@ func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy [
 				startTimeOrder = true
 			case *orderByExpr.identifier == metric:
 				kind = &models.LatestMetric{}
-			case *orderByExpr.identifier == "param":
+			case *orderByExpr.identifier == "parameter":
 				kind = &models.Param{}
 			case *orderByExpr.identifier == "tag":
 				kind = &models.Tag{}
@@ -458,7 +458,7 @@ func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy [
 			case orderByExpr.identifier != nil && *orderByExpr.identifier == "attribute":
 				originalColumn = "runs." + orderByExpr.key
 			case orderByExpr.identifier != nil:
-				originalColumn = fmt.Sprintf("%s.%s", *orderByExpr.identifier, originalColumn)
+				originalColumn = table + ".value"
 			default:
 				originalColumn = orderByExpr.key
 			}
