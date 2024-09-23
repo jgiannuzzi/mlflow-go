@@ -264,6 +264,7 @@ const (
 	startTime              = "start_time"
 	name                   = "name"
 	attribute              = "attribute"
+	metric                 = "metric"
 )
 
 func orderByKeyAlias(input string) string {
@@ -345,7 +346,7 @@ func splitOrderByClauseWithQuotes(input string) []string {
 func translateIdentifierAlias(identifier string) string {
 	switch strings.ToLower(identifier) {
 	case "metrics":
-		return "metric"
+		return metric
 	case "parameters", "param", "params":
 		return "parameter"
 	case "tags":
@@ -387,6 +388,7 @@ func processOrderByClause(input string) (orderByExpr, error) {
 //nolint:funlen, cyclop
 func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy []string) *contract.Error {
 	startTimeOrder := false
+	columnSelection := "runs.*"
 
 	for index, orderByClause := range orderBy {
 		orderByExpr, err := processOrderByClause(orderByClause)
@@ -417,7 +419,7 @@ func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy [
 			switch {
 			case *orderByExpr.identifier == attribute && orderByExpr.key == "start_time":
 				startTimeOrder = true
-			case *orderByExpr.identifier == "metric":
+			case *orderByExpr.identifier == metric:
 				kind = &models.LatestMetric{}
 			case *orderByExpr.identifier == "param":
 				kind = &models.Param{}
@@ -441,13 +443,28 @@ func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy [
 			desc = *orderByExpr.order == "DESC"
 		}
 
-		if kind == nil &&
-			orderByExpr.identifier != nil &&
-			*orderByExpr.identifier == attribute &&
-			orderByExpr.key == "end_time" {
-			logger.Debug("do something special")
-			transaction.Select("*, (CASE WHEN (runs.end_time IS NULL) THEN 1 ELSE 0 END) AS end_time_present")
-			transaction.Order("end_time_present")
+		if orderByExpr.identifier == nil || *orderByExpr.identifier != metric {
+			nullableColumnAlias := fmt.Sprintf("order_null_%d", index)
+
+			var originalColumn string
+
+			switch {
+			case orderByExpr.identifier != nil && *orderByExpr.identifier == "attribute":
+				originalColumn = "runs." + orderByExpr.key
+			case orderByExpr.identifier != nil:
+				originalColumn = fmt.Sprintf("%s.%s", *orderByExpr.identifier, originalColumn)
+			default:
+				originalColumn = orderByExpr.key
+			}
+
+			columnSelection = fmt.Sprintf(
+				"%s, (CASE WHEN (%s IS NULL) THEN 1 ELSE 0 END) AS %s",
+				columnSelection,
+				originalColumn,
+				nullableColumnAlias,
+			)
+
+			transaction.Order(nullableColumnAlias)
 		}
 
 		transaction.Order(clause.OrderByColumn{
@@ -463,6 +480,11 @@ func applyOrderBy(ctx context.Context, database, transaction *gorm.DB, orderBy [
 	}
 
 	transaction.Order("runs.run_uuid")
+
+	// mlflow orders all nullable columns to have null last.
+	// For each order by clause, an additional dynamic order clause was added.
+	// We need to include these columns in the select clause.
+	transaction.Select(columnSelection)
 
 	return nil
 }
