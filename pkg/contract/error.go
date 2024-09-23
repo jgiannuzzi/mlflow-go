@@ -1,10 +1,10 @@
 package contract
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/mlflow/mlflow-go/pkg/protos"
+	"github.com/mlflow/mlflow-go/pkg/utils/json"
 )
 
 type ErrorCode protos.ErrorCode
