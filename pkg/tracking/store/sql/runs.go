@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -19,7 +20,6 @@ import (
 	"github.com/mlflow/mlflow-go/pkg/tracking/service/query/parser"
 	"github.com/mlflow/mlflow-go/pkg/tracking/store/sql/models"
 	"github.com/mlflow/mlflow-go/pkg/utils"
-	"github.com/mlflow/mlflow-go/pkg/utils/json"
 )
 
 type PageToken struct {

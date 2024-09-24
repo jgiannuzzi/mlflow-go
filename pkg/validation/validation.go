@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/mlflow/mlflow-go/pkg/contract"
 	"github.com/mlflow/mlflow-go/pkg/protos"
-	"github.com/mlflow/mlflow-go/pkg/utils/json"
 )
 
 const (

@@ -4,13 +4,13 @@ import "C"
 
 import (
 	"context"
+	"encoding/json"
 	"unsafe"
 
 	"google.golang.org/protobuf/proto"
 
 	"github.com/mlflow/mlflow-go/pkg/contract"
 	"github.com/mlflow/mlflow-go/pkg/protos"
-	"github.com/mlflow/mlflow-go/pkg/utils/json"
 	"github.com/mlflow/mlflow-go/pkg/validation"
 )
 
@@ -56,7 +56,7 @@ func makePointerFromBytes(data []byte, size *C.int) unsafe.Pointer {
 }
 
 func makePointerFromError(err *contract.Error, size *C.int) unsafe.Pointer {
-	data, _ := json.Marshal(err)
+	data, _ := json.Marshal(err) //nolint:errchkjson
 
 	return makePointerFromBytes(data, size)
 }
