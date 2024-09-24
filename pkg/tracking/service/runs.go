@@ -8,7 +8,6 @@ import (
 	"github.com/mlflow/mlflow-go/pkg/entities"
 	"github.com/mlflow/mlflow-go/pkg/protos"
 	"github.com/mlflow/mlflow-go/pkg/tracking/store/sql/models"
-	"github.com/mlflow/mlflow-go/pkg/utils"
 )
 
 func (ts TrackingService) SearchRuns(
@@ -82,16 +81,7 @@ func (ts TrackingService) GetRun(
 		return nil, err
 	}
 
-	logger := utils.GetLoggerFromContext(ctx)
-
-	protoRun := run.ToProto()
-	if protoRun.Inputs != nil &&
-		protoRun.Inputs.DatasetInputs != nil &&
-		len(protoRun.Inputs.DatasetInputs) > 0 {
-		logger.Infof("profile in service is %v : ", protoRun.Inputs.DatasetInputs[0].Dataset.Profile)
-	}
-
-	return &protos.GetRun_Response{Run: protoRun}, nil
+	return &protos.GetRun_Response{Run: run.ToProto()}, nil
 }
 
 func (ts TrackingService) CreateRun(
