@@ -99,6 +99,7 @@ class _TrackingStore:
     def get_run(self, run_id):
         request = GetRun(run_uuid=run_id, run_id=run_id)
         response = self.service.call_endpoint(get_lib().TrackingServiceGetRun, request)
+        print(response.run)
         return Run.from_proto(response.run)
 
     def create_run(self, experiment_id, user_id, start_time, tags, run_name):

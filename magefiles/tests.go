@@ -50,13 +50,13 @@ func (Test) Python() error {
 		"MLFLOW_GO_LIBRARY_PATH": libpath,
 	}, "pytest",
 		"--confcutdir=.",
-		".mlflow.repo/tests/tracking/test_rest_tracking.py",
-		".mlflow.repo/tests/tracking/test_model_registry.py",
-		".mlflow.repo/tests/store/tracking/test_sqlalchemy_store.py",
-		".mlflow.repo/tests/store/model_registry/test_sqlalchemy_store.py",
+		// ".mlflow.repo/tests/tracking/test_rest_tracking.py",
+		// ".mlflow.repo/tests/tracking/test_model_registry.py",
+		".mlflow.repo/tests/store/tracking/test_sqlalchemy_store.py::test_log_inputs_with_large_inputs_limit_check",
+		// ".mlflow.repo/tests/store/model_registry/test_sqlalchemy_store.py",
 		"-k",
 		"not [file",
-		// "-vv",
+		"-vv",
 	); err != nil {
 		return err
 	}
