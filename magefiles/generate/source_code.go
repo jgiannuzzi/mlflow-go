@@ -154,10 +154,8 @@ func mkAppRoute(method discovery.MethodInfo, endpoint discovery.Endpoint) ast.St
 		),
 	)
 
-	// return response.SerializeResponse(output)
-	returnExpr := mkReturnStmt(
-		mkCallExpr(mkSelectorExpr("response", "SerializeResponse"), ast.NewIdent("ctx"), ast.NewIdent("output")),
-	)
+	// return ctx.JSON(output)
+	returnExpr := mkReturnStmt(mkCallExpr(mkSelectorExpr("ctx", "JSON"), ast.NewIdent("output")))
 
 	// func(ctx *fiber.Ctx) error { .. }
 	funcExpr := &ast.FuncLit{
@@ -211,7 +209,7 @@ func mkRouteRegistrationFunction(
 			Params: &ast.FieldList{
 				List: []*ast.Field{
 					mkNamedField("service", mkSelectorExpr("service", interfaceName)),
-					mkNamedField("parser", mkStarExpr(mkSelectorExpr("request", "HTTPRequestParser"))),
+					mkNamedField("parser", mkStarExpr(mkSelectorExpr("parser", "HTTPRequestParser"))),
 					mkNamedField("app", mkStarExpr(ast.NewIdent("fiber.App"))),
 				},
 			},
@@ -280,7 +278,7 @@ func generateRouteRegistrations(
 ) error {
 	importStatements := []string{
 		`"github.com/gofiber/fiber/v2"`,
-		`"github.com/mlflow/mlflow-go/pkg/server/request"`,
+		`"github.com/mlflow/mlflow-go/pkg/server/parser"`,
 		`"github.com/mlflow/mlflow-go/pkg/contract/service"`,
 	}
 
@@ -289,7 +287,6 @@ func generateRouteRegistrations(
 			importStatements,
 			`"github.com/mlflow/mlflow-go/pkg/utils"`,
 			`"github.com/mlflow/mlflow-go/pkg/protos"`,
-			`"github.com/mlflow/mlflow-go/pkg/server/response"`,
 		)
 	}
 

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -13,6 +14,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/proxy"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 
 	as "github.com/mlflow/mlflow-go/pkg/artifacts/service"
 	mr "github.com/mlflow/mlflow-go/pkg/model_registry/service"
@@ -21,20 +24,35 @@ import (
 	"github.com/mlflow/mlflow-go/pkg/config"
 	"github.com/mlflow/mlflow-go/pkg/contract"
 	"github.com/mlflow/mlflow-go/pkg/protos"
-	"github.com/mlflow/mlflow-go/pkg/server/request"
+	"github.com/mlflow/mlflow-go/pkg/server/parser"
 	"github.com/mlflow/mlflow-go/pkg/server/routes"
 	"github.com/mlflow/mlflow-go/pkg/utils"
 )
 
+//nolint:funlen
 func configureApp(ctx context.Context, cfg *config.Config) (*fiber.App, error) {
 	//nolint:mnd
 	app := fiber.New(fiber.Config{
-		BodyLimit:             16 * 1024 * 1024,
-		ReadBufferSize:        16384,
-		ReadTimeout:           5 * time.Second,
-		WriteTimeout:          600 * time.Second,
-		IdleTimeout:           120 * time.Second,
-		ServerHeader:          "mlflow/" + cfg.Version,
+		BodyLimit:      16 * 1024 * 1024,
+		ReadBufferSize: 16384,
+		ReadTimeout:    5 * time.Second,
+		WriteTimeout:   600 * time.Second,
+		IdleTimeout:    120 * time.Second,
+		ServerHeader:   "mlflow/" + cfg.Version,
+		JSONEncoder: func(v interface{}) ([]byte, error) {
+			if protoMessage, ok := v.(proto.Message); ok {
+				return protojson.Marshal(protoMessage)
+			}
+
+			return json.Marshal(v)
+		},
+		JSONDecoder: func(data []byte, v interface{}) error {
+			if protoMessage, ok := v.(proto.Message); ok {
+				return protojson.Unmarshal(data, protoMessage)
+			}
+
+			return json.Unmarshal(data, v)
+		},
 		DisableStartupMessage: true,
 	})
 
@@ -175,7 +193,7 @@ func newFiberConfig() fiber.Config {
 func newAPIApp(ctx context.Context, cfg *config.Config) (*fiber.App, error) {
 	app := fiber.New(newFiberConfig())
 
-	parser, err := request.NewHTTPRequestParser()
+	parser, err := parser.NewHTTPRequestParser()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new HTTP request parser: %w", err)
 	}

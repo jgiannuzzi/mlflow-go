@@ -1,4 +1,4 @@
-// nolint
+//nolint:ireturn
 package sql
 
 import (

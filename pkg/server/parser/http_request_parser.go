@@ -1,4 +1,4 @@
-package request
+package parser
 
 import (
 	"encoding/json"
@@ -33,6 +33,10 @@ func NewHTTPRequestParser() (*HTTPRequestParser, error) {
 
 func (p *HTTPRequestParser) ParseBody(ctx *fiber.Ctx, input proto.Message) *contract.Error {
 	if protojsonErr := protojson.Unmarshal(ctx.Body(), input); protojsonErr != nil {
+		// falling back to JSON, because `protojson` doesn't provide any information
+		// about `field` name for which ut fails. MLFlow tests expect to know the exact
+		// `field` name where validation failed. This approach has no effect on MLFlow
+		// tests, so let's keep it for now.
 		if jsonErr := json.Unmarshal(ctx.Body(), input); jsonErr != nil {
 			var unmarshalTypeError *json.UnmarshalTypeError
 			if errors.As(jsonErr, &unmarshalTypeError) {
