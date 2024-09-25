@@ -18,26 +18,19 @@ import (
 
 var errSqliteMemory = errors.New("go implementation does not support :memory: for sqlite")
 
-func NewDatabase(ctx context.Context, storeURL string) (*gorm.DB, error) {
-	logger := utils.GetLoggerFromContext(ctx)
-
-	uri, err := url.Parse(storeURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse store URL %q: %w", storeURL, err)
-	}
-
-	var dialector gorm.Dialector
-
+//nolint:ireturn
+func getDialector(uri *url.URL) (gorm.Dialector, error) {
 	uri.Scheme, _, _ = strings.Cut(uri.Scheme, "+")
 
 	switch uri.Scheme {
 	case "mssql":
 		uri.Scheme = "sqlserver"
-		dialector = sqlserver.Open(uri.String())
+
+		return sqlserver.Open(uri.String()), nil
 	case "mysql":
-		dialector = mysql.Open(fmt.Sprintf("%s@tcp(%s)%s?%s", uri.User, uri.Host, uri.Path, uri.RawQuery))
+		return mysql.Open(fmt.Sprintf("%s@tcp(%s)%s?%s", uri.User, uri.Host, uri.Path, uri.RawQuery)), nil
 	case "postgres", "postgresql":
-		dialector = postgres.Open(uri.String())
+		return postgres.Open(uri.String()), nil
 	case "sqlite":
 		uri.Scheme = ""
 		uri.Path = uri.Path[1:]
@@ -46,9 +39,37 @@ func NewDatabase(ctx context.Context, storeURL string) (*gorm.DB, error) {
 			return nil, errSqliteMemory
 		}
 
-		dialector = sqlite.Open(uri.String())
+		return sqlite.Open(uri.String()), nil
 	default:
 		return nil, fmt.Errorf("unsupported store URL scheme %q", uri.Scheme) //nolint:err113
+	}
+}
+
+func initSqlite(database *gorm.DB) error {
+	database.Exec("PRAGMA case_sensitive_like = true;")
+
+	sqlDB, err := database.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get database instance: %w", err)
+	}
+	// set SetMaxOpenConns to be 1 only in case of SQLite to avoid `database is locked`
+	// in case of parallel calls to some endpoints that use `transactions`.
+	sqlDB.SetMaxOpenConns(1)
+
+	return nil
+}
+
+func NewDatabase(ctx context.Context, storeURL string) (*gorm.DB, error) {
+	logger := utils.GetLoggerFromContext(ctx)
+
+	uri, err := url.Parse(storeURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse store URL %q: %w", storeURL, err)
+	}
+
+	dialector, err := getDialector(uri)
+	if err != nil {
+		return nil, err
 	}
 
 	database, err := gorm.Open(dialector, &gorm.Config{
@@ -60,15 +81,9 @@ func NewDatabase(ctx context.Context, storeURL string) (*gorm.DB, error) {
 	}
 
 	if dialector.Name() == "sqlite" {
-		database.Exec("PRAGMA case_sensitive_like = true;")
-
-		sqlDB, err := database.DB()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get database instance: %w", err)
+		if err := initSqlite(database); err != nil {
+			return nil, err
 		}
-		// set SetMaxOpenConns to be 1 only in case of SQLite to avoid `database is locked`
-		// in case of parallel calls to some endpoints that use `transactions`.
-		sqlDB.SetMaxOpenConns(1)
 	}
 
 	return database, nil
