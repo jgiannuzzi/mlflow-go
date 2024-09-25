@@ -2,6 +2,7 @@ package sql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -14,6 +15,8 @@ import (
 
 	"github.com/mlflow/mlflow-go/pkg/utils"
 )
+
+var errSqliteMemory = errors.New("go implementation does not support :memory: for sqlite")
 
 func NewDatabase(ctx context.Context, storeURL string) (*gorm.DB, error) {
 	logger := utils.GetLoggerFromContext(ctx)
@@ -38,6 +41,11 @@ func NewDatabase(ctx context.Context, storeURL string) (*gorm.DB, error) {
 	case "sqlite":
 		uri.Scheme = ""
 		uri.Path = uri.Path[1:]
+
+		if uri.Path == ":memory:" {
+			return nil, errSqliteMemory
+		}
+
 		dialector = sqlite.Open(uri.String())
 	default:
 		return nil, fmt.Errorf("unsupported store URL scheme %q", uri.Scheme) //nolint:err113
